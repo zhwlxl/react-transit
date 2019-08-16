@@ -77,3 +77,44 @@ export const timeSteps = [
   20,
   20,
 ];
+
+export const getDelayColor = roundedSecs => {
+  if (roundedSecs >= 3600) return '#ed004c'; // pink { r: 237, g: 0, b: 76, s: '237,0,76' };
+  if (roundedSecs >= 500) return '#e80000'; // red { r: 232, g: 0, b: 0, s: '232,0,0' };
+  if (roundedSecs >= 300) return '#ff4a00'; // orange { r: 255, g: 74, b: 0, s: '255,74,0' };
+  if (roundedSecs >= 180) return '#f7bf00'; // yellow { r: 247, g: 191, b: 0, s: '247,191,0' };
+  return '#00a00c'; // green { r: 0, g: 160, b: 12, s: '0,160,12' };
+};
+
+/**
+ * Return a rounded delay
+ * */
+export const roundDelay = secs => {
+  if (secs > 3600) {
+    const rounded = Math.round(secs / 3600);
+    return {
+      secs: rounded * 3600,
+      string: `${rounded}h`,
+    };
+  }
+
+  if (secs > 59) {
+    const rounded = Math.round(secs / 60);
+    return {
+      secs: rounded * 60,
+      string: `${rounded}m`,
+    };
+  }
+
+  if (secs > 0) {
+    return {
+      secs,
+      string: `${secs}s`,
+    };
+  }
+
+  return {
+    secs: 0,
+    string: '0',
+  };
+};

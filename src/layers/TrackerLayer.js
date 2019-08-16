@@ -3,7 +3,13 @@ import VectorSource from 'ol/source/Vector';
 import Layer from 'react-spatial/Layer';
 import { buffer, containsCoordinate, getWidth } from 'ol/extent';
 import Tracker from './Tracker';
-import { getRadius, bgColors, textColors, timeSteps } from '../config/tracker';
+import {
+  getRadius,
+  bgColors,
+  textColors,
+  timeSteps,
+  types,
+} from '../config/tracker';
 
 /**
  * Trackerlayer.
@@ -59,6 +65,20 @@ class TrackerLayer extends Layer {
     this.fps = 60;
 
     this.clickCallbacks = [];
+
+    this.types = options.types || types;
+
+    this.bgColorsByType = options.bgColorsByType || bgColors;
+
+    this.textColorsByType = options.textColorsByType || textColors;
+
+    this.getBgColorFromProps =
+      options.getBgColorFromProps ||
+      (({ color, type }) => color || this.bgColorsByType[type]);
+
+    this.getTextColorFromProps =
+      options.getTextColorFromProps ||
+      (({ type }) => this.textColorsByType[type]);
 
     // Add click callback
     if (options.onClick) {
@@ -163,7 +183,7 @@ class TrackerLayer extends Layer {
   }
 
   style(props) {
-    const { type, name, id, color } = props;
+    const { type, name, id } = props;
     const z = Math.min(Math.floor(this.currentZoom || 1), 16);
     const hover = this.hoverVehicleId === id;
 
@@ -185,7 +205,7 @@ class TrackerLayer extends Layer {
 
       ctx.beginPath();
       ctx.arc(radius + 2, radius + 2, radius, 0, 2 * Math.PI, false);
-      ctx.fillStyle = color || bgColors[type];
+      ctx.fillStyle = this.getBgColorFromProps(props);
       ctx.fill();
       ctx.lineWidth = 1;
       ctx.strokeStyle = '#003300';
@@ -195,7 +215,7 @@ class TrackerLayer extends Layer {
         const fontSize = Math.max(radius, 10);
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillStyle = textColors[type];
+        ctx.fillStyle = this.getTextColorFromProps(props);
         ctx.font = `${fontSize}px Arial`;
 
         const textSize = ctx.measureText(name);

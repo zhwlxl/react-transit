@@ -231,6 +231,7 @@ class TrajservLayer extends TrackerLayer {
       for (let i = 0; i < data.a.length; i += 1) {
         const coords = [];
         const timeIntervals = [];
+        let delay = 0;
         const {
           i: id,
           p: paths,
@@ -238,6 +239,7 @@ class TrajservLayer extends TrackerLayer {
           n: name,
           c: color,
           ag: operator,
+          r,
         } = data.a[i];
 
         for (let j = 0; j < paths.length; j += 1) {
@@ -247,7 +249,13 @@ class TrajservLayer extends TrackerLayer {
 
           for (let k = 0; k < path.length; k += 1) {
             // d: delay. When the train is stopped at a station.
-            const { x, y, a: timeAtPixelInScds, d: delay } = path[k];
+            const {
+              x,
+              y,
+              a: timeAtPixelInScds,
+              d: delayAtStation,
+              ad: arrivalDelay,
+            } = path[k];
             coords.push([x, y]);
 
             // If a pixel is defined with a time we add it to timeIntervals.
@@ -259,9 +267,9 @@ class TrajservLayer extends TrackerLayer {
               );
 
               timeIntervals.push([timeAtPixelInMilliscds, timeFrac, null, k]);
-              if (delay) {
+              if (delayAtStation) {
                 const afterStopTimeInMilliscds =
-                  (timeAtPixelInScds + delay) * 1000;
+                  (timeAtPixelInScds + delayAtStation) * 1000;
                 timeIntervals.push([
                   afterStopTimeInMilliscds,
                   (afterStopTimeInMilliscds - startTime) /
@@ -269,11 +277,19 @@ class TrajservLayer extends TrackerLayer {
                   null,
                   k,
                 ]);
+                console.log(r);
+                // r: makes a difference for the delay, if r is undefined delay is not display, if r exists and different from 0 delay style is displayed
+                // if (r && !delay && arrivalDelay >= 0) {
+                if (!delay && arrivalDelay && arrivalDelay >= 0) {
+                  delay = arrivalDelay;
+                  console.log('delays ', delay);
+                }
               }
             }
           }
         }
 
+        console.log('delays2 ', delay);
         if (coords.length) {
           const geometry = new LineString(coords);
           // For debug purpose , display the trajectory
@@ -287,6 +303,7 @@ class TrajservLayer extends TrackerLayer {
             timeOffset: this.currentOffset,
             time_intervals: timeIntervals,
             operator: operator.n,
+            delay,
           });
         }
       }

@@ -9,6 +9,7 @@ import { defaults as defaultInteractions } from 'ol/interaction';
 import Dialog from 'react-spatial/components/Dialog';
 import Footer from 'react-spatial/components/Footer';
 import DatePicker from 'react-datepicker';
+import { getDelayColor } from './config/tracker';
 import TrackerControl from './components/TrackerControl';
 import TrajservLayer from './layers/TrajservLayer';
 import Clock from './components/Clock';
@@ -37,6 +38,20 @@ class App extends Component {
     });
 
     this.trackerLayer = new TrajservLayer({
+      getBgColorFromProps: ({ delay }) => {
+        // (delaysecs, cancelled) {
+        // if (cancelled) {
+        //  return '#ff0000';
+        // }
+        // eslint-disable-next-line no-restricted-globals
+        if (delay >= 0) {
+          return getDelayColor(delay);
+        }
+        return '#b4b4b4';
+      },
+      getTextColorFromProps: () => {
+        return '#000000';
+      },
       onClick: trajectory => {
         this.setState({
           isRouteScheduleOpen: true,
