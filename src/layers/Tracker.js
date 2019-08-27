@@ -20,23 +20,16 @@ export default class Tracker {
 
     // we draw directly on the canvas since openlayers is too slow
     this.canvas = opts.canvas || document.createElement('canvas');
-    this.canvas.setAttribute(
-      'style',
-      [
-        'position: absolute',
-        'top: 0',
-        'bottom: 0',
-        'right: 0',
-        'left: 0',
-        'pointer-events: none',
-        'visibility: visible',
-      ].join(';'),
-    );
+    [this.canvas.width, this.canvas.height] = [70, 300];
     this.canvasContext = this.canvas.getContext('2d');
 
     this.renderCompleteRef = this.map.once('rendercomplete', () => {
+      console.log(this.map.getSize());
       [this.canvas.width, this.canvas.height] = this.map.getSize();
-      this.map.getTarget().appendChild(this.canvas);
+      // this.map.getTarget().appendChild(this.canvas);
+    });
+    this.renderCompleteRef = this.map.once('postrender', () => {
+      [this.canvas.width, this.canvas.height] = this.map.getSize();
     });
 
     this.changeSizeRef = this.map.on('change:size', () => {
@@ -168,7 +161,11 @@ export default class Tracker {
    * @param {Date} currTime
    */
   renderTrajectory(currTime = Date.now()) {
+    console.log('render');
     this.clear();
+    this.canvas = document.createElement('canvas');
+    [this.canvas.width, this.canvas.height] = [706, 300];
+    this.canvasContext = this.canvas.getContext('2d');
     const res = this.map.getView().getResolution();
     let hoverVehicleImg;
     let hoverVehiclePx;

@@ -1,5 +1,7 @@
 import OLVectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
+import ImageLayer from 'ol/layer/Image';
+import ImageCanvasSource from 'ol/source/ImageCanvas';
 import { unByKey } from 'ol/Observable';
 import Layer from 'react-spatial/layers/Layer';
 import { buffer, containsCoordinate } from 'ol/extent';
@@ -51,6 +53,15 @@ class TrackerLayer extends Layer {
       ...options,
     });
 
+    this.olLayer2 = new ImageLayer({
+      source: new ImageCanvasSource({
+        ratio: 1,
+        canvasFunction: () => {
+          console.log(this.tracker.canvas);
+          return this.tracker.canvas;
+        },
+      }),
+    });
     this.styleCache = {};
 
     this.currentOffset = 0;
@@ -95,6 +106,7 @@ class TrackerLayer extends Layer {
 
     this.tracker = new Tracker(this.map);
     this.tracker.setStyle((props, r) => this.style(props, r));
+    this.map.addLayer(this.olLayer2);
 
     if (this.getVisible()) {
       this.start(map);
@@ -102,6 +114,9 @@ class TrackerLayer extends Layer {
   }
 
   terminate() {
+    if (this.map) {
+      this.map.removeLayer(this.olLayer2);
+    }
     super.terminate();
     this.stop();
     if (this.tracker) {
@@ -117,12 +132,11 @@ class TrackerLayer extends Layer {
   start(map) {
     this.stop();
     this.tracker.setVisible(true);
+    this.onMoveStartRef = map.on('movestart', () => this.onMoveStart());
     this.onMoveEndRef = map.on('moveend', () => this.onMoveEnd());
     this.onPointerMoveRef = map.on('pointermove', e => this.onPointerMove(e));
-    this.tracker.renderTrajectory(this.currTime);
     this.startUpdateTrajectories();
     this.startUpdateTime();
-    this.updateTrajectories();
   }
 
   /**
@@ -133,7 +147,7 @@ class TrackerLayer extends Layer {
       this.tracker.clear();
       this.tracker.setVisible(false);
     }
-    unByKey([this.onMoveEndRef, this.onPointerMoveRef]);
+    unByKey([this.onMoveStartRef, this.onMoveEndRef, this.onPointerMoveRef]);
     this.stopUpdateTrajectories();
     this.stopUpdateTime();
     this.abortFetchTrajectories();
@@ -180,7 +194,7 @@ class TrackerLayer extends Layer {
    * Stop the update of trajectories.
    */
   stopUpdateTrajectories() {
-    window.clearInterval(this.updateInterval);
+    clearInterval(this.updateInterval);
   }
 
   /**
@@ -200,7 +214,7 @@ class TrackerLayer extends Layer {
    * Stop to update time
    */
   stopUpdateTime() {
-    window.clearInterval(this.updateTime);
+    clearInterval(this.updateTime);
   }
 
   /**
@@ -219,7 +233,10 @@ class TrackerLayer extends Layer {
     const newTime = new Date(time);
     this.currTime = newTime;
     this.lastUpdateTime = new Date();
-    this.tracker.renderTrajectory(this.currTime);
+    if (!this.blockRendering) {
+      this.tracker.renderTrajectory(this.currTime);
+      this.olLayer2.getSource().changed();
+    }
   }
 
   /**
@@ -292,14 +309,18 @@ class TrackerLayer extends Layer {
     return nextTick;
   }
 
+  onMoveStart() {
+    this.blockRendering = true;
+  }
+
   onMoveEnd() {
+    this.blockRendering = false;
     const z = this.map.getView().getZoom();
 
     if (z !== this.currentZoom) {
       this.currentZoom = z;
       this.startUpdateTime();
     }
-    this.tracker.renderTrajectory(this.currTime);
     this.updateTrajectories();
   }
 

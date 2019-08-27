@@ -30,7 +30,7 @@ module.exports = {
     {
       name: 'Components',
       components: [
-        'src/components/RouteSchedule/[A-Z]*.js',
+        // 'src/components/RouteSchedule/[A-Z]*.js',
         'src/components/TrackerControl/[A-Z]*.js',
       ],
       exampleMode: 'collapse',
@@ -41,7 +41,7 @@ module.exports = {
       sections: [
         {
           name: 'Tracker layer',
-          content: 'src/layers/README.md',
+          //content: 'src/layers/README.md',
           exampleMode: 'collapse',
           usageMode: 'collapse',
         },
