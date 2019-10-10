@@ -114,7 +114,16 @@ const getStationImg = (index, length) => {
  */
 const renderStationImg = (index, length) => {
   const src = getStationImg(index, length);
-  return <img src={src} alt="routeScheduleLine" className="rt-route-icon" />;
+  return (
+    <div
+      className="rt-route-icon"
+      style={{
+        background: `url('${src}') no-repeat center center`,
+      }}
+    >
+      <div className="rt-route-icon-mask" />
+    </div>
+  );
 };
 
 const propTypes = {
