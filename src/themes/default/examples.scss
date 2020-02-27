@@ -5,11 +5,12 @@
 @import '../../components/RouteSchedule/RouteSchedule.md.scss';
 @import '../../components/Search/Search.md.scss';
 
-.tm-map {
+.rs-map {
+  position: relative;
   height: 300px;
 }
 
-.tm-footer {
+.rs-footer {
   position: absolute;
   height: 40px;
   bottom: 0;
